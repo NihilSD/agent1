@@ -77,6 +77,12 @@ python main.py generate https://www.aliexpress.com/item/1005006123456789.html
 # Run it again with a different listing, same stored template
 python main.py generate https://www.aliexpress.com/item/1005006987654321.html -o my_sheet.pdf
 
+# Bulk mode: pass multiple URLs directly...
+python main.py generate https://www.aliexpress.com/item/AAA.html https://www.aliexpress.com/item/BBB.html
+
+# ...or from a text file (one URL per line, # comments allowed)
+python main.py generate --file urls.txt --output-dir output/batch1 --delay 10
+
 # Inspect / clear the stored template
 python main.py current-template
 python main.py reset-template
@@ -89,7 +95,10 @@ python main.py reset-template
   scraping. AliExpress changes its markup and anti-bot challenges often — if scraping
   starts failing, `scraper.py` is the place to update selectors. Blocked/rate-limited
   pages are detected and reported with a clear error instead of failing silently or
-  returning garbage data.
+  returning garbage data. In bulk mode, `--delay` (default 8s) is applied between
+  listings to reduce the chance of getting rate-limited — raise it if you still get
+  blocked partway through a batch. A failed listing is skipped (with the reason printed
+  at the end) rather than aborting the rest of the batch.
 - **Field mapping never guesses**: the LLM is explicitly instructed to output `"N/A"`
   for any field it can't confidently determine from the scraped data, rather than
   fabricating plausible-looking values.
