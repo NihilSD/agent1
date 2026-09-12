@@ -4,5 +4,6 @@ __pycache__/
 data/*.db
 temp/*
 !temp/.gitkeep
+output/
 .venv/
 venv/

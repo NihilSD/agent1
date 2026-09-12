@@ -13,7 +13,7 @@ first mismatch:
 
 If the page is blocked/rate-limited (captcha, redirect to a login/verify
 page, empty content) a `ScrapeError` is raised with a message that's safe to
-show directly to a Discord user.
+show directly to the user.
 """
 from __future__ import annotations
 
@@ -40,7 +40,7 @@ BLOCK_MARKERS = [
 
 
 class ScrapeError(Exception):
-    """Raised for anything that should surface as a friendly Discord message."""
+    """Raised for anything that should surface as a friendly CLI message."""
 
 
 @dataclass
