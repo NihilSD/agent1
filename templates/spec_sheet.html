@@ -78,42 +78,38 @@
         white-space: nowrap;
     }
     .hero {
-        display: flex;
-        gap: 12px;
+        display: table;
+        table-layout: fixed;
+        width: 100%;
         margin-bottom: 22px;
     }
-    .hero .main-image {
-        flex: 2;
-        min-width: 0;
-        min-height: 0;
+    .hero-main {
+        display: table-cell;
+        width: 66%;
+        padding-right: 12px;
+        vertical-align: top;
+    }
+    .hero-thumbs {
+        display: table-cell;
+        width: 34%;
+        vertical-align: top;
+    }
+    .img-cover {
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
         border-radius: 6px;
-        overflow: hidden;
         border: 1px solid #E5E7EB;
     }
-    .hero .main-image img {
-        display: block;
-        width: 100%;
+    .hero-main .img-cover {
         height: 6.4cm;
-        max-width: 100%;
-        object-fit: cover;
     }
-    .hero .thumb-stack {
-        flex: 1;
-        min-width: 0;
-        min-height: 0;
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
+    .hero-thumbs .img-cover {
+        height: 2.85cm;
+        margin-bottom: 12px;
     }
-    .hero .thumb-stack img {
-        display: block;
-        width: 100%;
-        height: 3cm;
-        max-width: 100%;
-        object-fit: cover;
-        border-radius: 6px;
-        border: 1px solid #E5E7EB;
-        min-height: 0;
+    .hero-thumbs .img-cover:last-child {
+        margin-bottom: 0;
     }
     .card-grid {
         display: grid;
@@ -218,11 +214,13 @@
 
         {% if image_paths %}
         <div class="hero">
-            <div class="main-image"><img src="{{ image_paths[0] }}" alt="product image"></div>
+            <div class="hero-main">
+                <div class="img-cover" style="background-image: url('{{ image_paths[0] }}');"></div>
+            </div>
             {% if image_paths|length > 1 %}
-            <div class="thumb-stack">
+            <div class="hero-thumbs">
                 {% for img in image_paths[1:3] %}
-                <img src="{{ img }}" alt="product image">
+                <div class="img-cover" style="background-image: url('{{ img }}');"></div>
                 {% endfor %}
             </div>
             {% endif %}
