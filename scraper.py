@@ -173,25 +173,41 @@ def _from_json_ld(ld_blocks: list[dict], product: ProductData) -> None:
             product.description = block["description"]
 
 
+_GENERIC_TITLES = {"aliexpress", "aliexpress.com", "ali express"}
+
+
+def _is_generic_title(text: str) -> bool:
+    """Filters out site branding (e.g. a header logo's accessible text) that
+    can get matched by generic 'h1'/'title' selectors instead of the actual
+    product title."""
+    normalized = text.strip().lower()
+    return normalized in _GENERIC_TITLES or len(normalized) < 8
+
+
 async def _scrape_with_dom(page, product: ProductData) -> None:
     """Last-resort visible-DOM scraping when structured data isn't found."""
     if not product.title:
         for selector in ["h1", "[class*='title']"]:
-            el = await page.query_selector(selector)
-            if el:
+            for el in await page.query_selector_all(selector):
                 text = (await el.inner_text()).strip()
-                if text:
+                if text and not _is_generic_title(text):
                     product.title = text
                     break
+            if product.title:
+                break
 
     if not product.images:
-        image_urls = await page.eval_on_selector_all(
+        candidates = await page.eval_on_selector_all(
             "img[src*='alicdn']",
-            "els => els.map(e => e.src)",
+            "els => els.map(e => ({src: e.src, width: e.naturalWidth, height: e.naturalHeight}))",
         )
         seen = []
-        for url in image_urls:
-            if url not in seen and "logo" not in url.lower():
+        for img in candidates:
+            url = img.get("src", "")
+            # Small images (icons/logos/badges) aren't real product photos.
+            if img.get("width", 0) < 150 or img.get("height", 0) < 150:
+                continue
+            if url and url not in seen and "logo" not in url.lower():
                 seen.append(url)
             if len(seen) >= config.SCRAPE_MAX_IMAGES:
                 break
@@ -284,10 +300,11 @@ async def scrape_listing(url: str) -> ProductData:
     except Exception as e:
         raise ScrapeError(f"Failed to load or parse the AliExpress listing: {e}") from e
 
-    if not product.title:
+    if not product.title or _is_generic_title(product.title):
         raise ScrapeError(
-            "Couldn't extract product details from that listing. The page layout may have "
-            "changed or the listing may be unavailable."
+            "Couldn't extract product details from that listing (only found generic page "
+            "branding, not the actual product). The page layout may have changed or the "
+            "listing may be unavailable."
         )
 
     return product
