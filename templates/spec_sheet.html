@@ -111,6 +111,16 @@
     .hero-thumbs .img-cover:last-child {
         margin-bottom: 0;
     }
+    .section-heading {
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-size: 11px;
+        font-weight: bold;
+        color: {{ primary_color }};
+        border-bottom: 2px solid {{ primary_color }};
+        padding-bottom: 6px;
+        margin-bottom: 12px;
+    }
     .card-grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
@@ -183,6 +193,47 @@
         color: #64748B;
         font-style: italic;
     }
+    .light-panel {
+        background: #ffffff;
+        border: 1px solid #E5E7EB;
+        border-radius: 6px;
+        padding: 14px 18px;
+        margin-bottom: 14px;
+        break-inside: avoid;
+    }
+    .light-panel h2 {
+        font-family: "{{ heading_font }}", "Helvetica Neue", Arial, sans-serif;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-size: 10.5px;
+        color: {{ primary_color }};
+        margin: 0 0 10px 0;
+        padding-bottom: 8px;
+        border-bottom: 2px solid {{ primary_color }};
+    }
+    .light-panel .field-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px 24px;
+    }
+    .light-panel .field {
+        break-inside: avoid;
+    }
+    .light-panel .field .label {
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-size: 7.5px;
+        color: #6B7280;
+        margin-bottom: 2px;
+    }
+    .light-panel .field .value {
+        font-size: 11px;
+        color: #0F172A;
+    }
+    .light-panel .field .value.na {
+        color: #9CA3AF;
+        font-style: italic;
+    }
     .footer-note {
         margin-top: 18px;
         font-size: 8px;
@@ -228,6 +279,7 @@
         {% endif %}
 
         {% if hero_section %}
+        <div class="section-heading">{{ hero_section.name }}</div>
         <div class="card-grid">
             {% for label, value in hero_section.fields.items() %}
             <div class="card">
@@ -238,8 +290,22 @@
         </div>
         {% endif %}
 
-        {% for section in rest_sections %}
+        {% if rest_sections %}
         <div class="panel">
+            <h2>{{ rest_sections[0].name }}</h2>
+            <div class="field-grid">
+                {% for label, value in rest_sections[0].fields.items() %}
+                <div class="field">
+                    <div class="label">{{ label }}</div>
+                    <div class="value{{ ' na' if value == 'N/A' else '' }}">{{ value }}</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% for section in rest_sections[1:] %}
+        <div class="light-panel">
             <h2>{{ section.name }}</h2>
             <div class="field-grid">
                 {% for label, value in section.fields.items() %}
