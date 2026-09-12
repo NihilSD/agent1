@@ -84,6 +84,8 @@
     }
     .hero .main-image {
         flex: 2;
+        min-width: 0;
+        min-height: 0;
         border-radius: 6px;
         overflow: hidden;
         border: 1px solid #E5E7EB;
@@ -92,10 +94,13 @@
         display: block;
         width: 100%;
         height: 6.4cm;
+        max-width: 100%;
         object-fit: cover;
     }
     .hero .thumb-stack {
         flex: 1;
+        min-width: 0;
+        min-height: 0;
         display: flex;
         flex-direction: column;
         gap: 12px;
@@ -104,9 +109,11 @@
         display: block;
         width: 100%;
         height: 3cm;
+        max-width: 100%;
         object-fit: cover;
         border-radius: 6px;
         border: 1px solid #E5E7EB;
+        min-height: 0;
     }
     .card-grid {
         display: grid;
