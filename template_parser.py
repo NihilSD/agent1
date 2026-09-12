@@ -68,6 +68,28 @@ def _rgb_to_hex(rgb) -> Optional[str]:
         return None
 
 
+def _normalize_pdf_color(color) -> Optional[tuple]:
+    """pdfplumber's `non_stroking_color` may be a single grayscale float, an
+    (r, g, b) tuple, or an (c, m, y, k) tuple, each component in 0..1."""
+    if color is None:
+        return None
+    try:
+        if isinstance(color, (int, float)):
+            v = round(color * 255)
+            return (v, v, v)
+        if len(color) == 3:
+            return tuple(round(c * 255) for c in color)
+        if len(color) == 4:
+            c, m, y, k = color
+            r = round(255 * (1 - c) * (1 - k))
+            g = round(255 * (1 - m) * (1 - k))
+            b = round(255 * (1 - y) * (1 - k))
+            return (r, g, b)
+    except Exception:
+        return None
+    return None
+
+
 def _parse_docx(file_path: str) -> RawTemplateExtract:
     try:
         import docx
@@ -155,6 +177,7 @@ def _parse_pdf(file_path: str) -> RawTemplateExtract:
     text_lines: list[str] = []
     font_size_counter: Counter = Counter()
     font_name_counter: Counter = Counter()
+    color_counter: Counter = Counter()
 
     try:
         with pdfplumber.open(file_path) as pdf:
@@ -170,6 +193,13 @@ def _parse_pdf(file_path: str) -> RawTemplateExtract:
                     if fname:
                         font_name_counter[fname] += 1
 
+                    # Non-black/white text color is a good signal for a
+                    # template's accent color (headings, labels, etc).
+                    color = char.get("non_stroking_color")
+                    rgb = _normalize_pdf_color(color)
+                    if rgb and not (all(c > 235 for c in rgb) or all(c < 40 for c in rgb)):
+                        color_counter[rgb] += 1
+
                 for table in page.extract_tables() or []:
                     for row in table:
                         cells = [c.strip() for c in row if c and c.strip()]
@@ -177,6 +207,9 @@ def _parse_pdf(file_path: str) -> RawTemplateExtract:
                             extract.label_value_pairs.append((cells[0], " / ".join(cells[1:])))
     except Exception as e:
         raise TemplateParseError(f"Could not read .pdf file: {e}") from e
+
+    if color_counter:
+        extract.primary_color_hex = _rgb_to_hex(color_counter.most_common(1)[0][0])
 
     if not text_lines and not extract.label_value_pairs:
         raise TemplateParseError(

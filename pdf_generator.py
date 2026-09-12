@@ -76,10 +76,15 @@ async def generate_spec_sheet_pdf(
     if logo_b64:
         logo_data_uri = f"data:image/png;base64,{logo_b64}"
 
+    sections = filled_data.get("sections", [])
+    hero_section = sections[0] if sections else None
+    rest_sections = sections[1:] if len(sections) > 1 else []
+
     template = _jinja_env.get_template("spec_sheet.html")
     html_content = template.render(
         document_title=filled_data.get("document_title", "Product Specification Sheet"),
-        sections=filled_data.get("sections", []),
+        hero_section=hero_section,
+        rest_sections=rest_sections,
         primary_color=style.get("primary_color", "#1F2937"),
         heading_font=style.get("heading_font", "Helvetica"),
         body_font=style.get("body_font", "Helvetica"),
